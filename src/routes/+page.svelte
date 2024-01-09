@@ -71,7 +71,7 @@
                     </div>
                     {/each}
                 </div>
-                <div class="h-12 -mb-20 w-full -translate-y-full bg-gradient-to-t from-gray-900 via-gray-900/70 to-transparent"/>
+                <div class="h-12 -mb-20 w-full -translate-y-full bg-gradient-to-t from-slate-50 dark:from-gray-900 via-slate-50/60 dark:via-gray-900/70 to-transparent"/>
                 <h3 class="text-xl font-medium mt-4 translate-y-0">Powerful search</h3>
                 <p class="opacity-70">Always find the something you need. Any way you want.</p>
             </div>
