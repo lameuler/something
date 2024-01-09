@@ -3,7 +3,7 @@
     import { data } from '$lib/data';
 
 </script>
-<main class="min-h-full">
+<main class="min-h-full max-w-[100vw]">
     <section class="flex items-center justify-center flex-col p-4 pt-20 min-h-screen max-w-full overflow-x-clip">
         <h1 class="z-20 text-center text-4xl sm:text-5xl font-medium text-gray-600 dark:text-gray-400">
             Welcome to
@@ -61,7 +61,7 @@
                         <div class="cell grow py-1">Message</div>
                     </div>
                     {#each data.slice(0,5) as entry}
-                    <div class="flex h-8 border-b border-slate-500/60 px-2 items-center text-sm">
+                    <div class="flex h-8 border-b border-slate-500/60 px-2 w-full items-center text-sm">
                         
                         <div class="cell w-28 max-w-28 min-w-28">{
                             Intl.DateTimeFormat('en-SG', { dateStyle: 'medium', timeStyle: undefined, timeZone: 'Singapore'}).format(entry.date)
