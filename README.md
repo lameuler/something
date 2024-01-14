@@ -4,6 +4,8 @@ This is a template site created with [SvelteKit](https://kit.svelte.dev) and [Ta
 
 ## Viewing the site
 
+This site is statically hosted at [something.ler.sg](https://something.ler.sg)
+
 If the site has already been built, you can view the generated html, css and js files in the build folder.
 
 To view the site using a development server, run:
