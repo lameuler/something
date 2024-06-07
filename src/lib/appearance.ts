@@ -3,61 +3,29 @@ import { writable } from 'svelte/store'
 export const MEDIA_DARK = '(prefers-color-scheme: dark)'
 export const STORAGE_KEY = 'appearance'
 
-export const options = {
-    theme: ['auto','light','dark'] as const
-}
+const darkStore = writable<boolean>()
 
-export type AppearanceKeys = keyof typeof options
-export type Appearance = {[Key in AppearanceKeys]: (typeof options[Key][number])}
-export type AppearanceUpdate = {[Key in AppearanceKeys]?: (typeof options[Key][number]|undefined)}
-
-const appearanceStore = writable<Appearance>()
-
-export const appearance = {
-    set(appearance: string|null|undefined) {
+export const dark = {
+    set(appearance: boolean|null|undefined) {
         this.update(() => appearance)
     },
-    update(updater: (old: Appearance) => string|null|undefined) {
-        appearanceStore.update(old => {
-            let newValue: {[key: string]: string} = {}
+    update(updater: (old: boolean) => boolean|null|undefined) {
+        darkStore.update(old => {
+            let value = old
             const raw = updater(old)
-            const appearance = parseAppearance(raw ?? '')
-
-            type K = keyof Appearance
-            Object.entries(options).forEach(([key, opts]) => newValue[key] = appearance[key as K] ?? old?.[key as K] ?? opts[0])
-            const value = newValue as Appearance
-
-            const browser = typeof window !== 'undefined'
-            if (value['theme'] === 'auto') {
-                value['theme'] = browser ? (matchMedia(MEDIA_DARK).matches ? 'dark' : 'light') : 'auto'
+            if (typeof raw === 'boolean') {
+                value = raw
             }
             
-            const className = Object.values(value).join(' ')
-            if (browser) {
-                document.documentElement.className = className
-                localStorage.setItem(STORAGE_KEY, className)
+            if (typeof window !== 'undefined') {
+                if (value) document.documentElement.classList.add('dark')
+                else document.documentElement.classList.remove('dark')
+                localStorage.setItem(STORAGE_KEY, value+':'+matchMedia(MEDIA_DARK).matches)
             }
             return value
         })
     },
-    subscribe: appearanceStore.subscribe
-}
-
-export type AppearanceStore = typeof appearance
-
-function parseAppearance(classes: string|null|undefined): AppearanceUpdate {
-    const classList = (classes ?? '').toLowerCase().split(' ')
-    const result: {[key: string]: (string|undefined)} = {}
-    Object.entries(options).forEach(([key, value])=> {
-        for (let cls of value) {
-            if (classList.includes(cls)) {
-                result[key] = cls
-                return
-            }
-        }
-        result[key] = undefined
-    })
-    return result as AppearanceUpdate
+    subscribe: darkStore.subscribe
 }
 
 const fullscreenStore = writable<boolean>(undefined)
@@ -83,17 +51,21 @@ export const fullscreen = {
 }
 
 export function listener() {
-    appearance.set(document.documentElement.className)
+    dark.set(document.documentElement.classList.contains('dark'))
 
     const mediaHandler = (event: MediaQueryListEvent) => {
-        appearance.set(event.matches ? 'dark' : 'light')
+        dark.set(event.matches)
     }
     matchMedia(MEDIA_DARK).addEventListener('change',mediaHandler)
 
     const storageHandler = (event: StorageEvent) => {
         if(event.key === STORAGE_KEY && event.newValue !== event.oldValue) {
-            // console.log(event.newValue)
-            appearance.set(event.newValue ?? '')
+            const choice = event.newValue?.split(':')
+            if (choice && (choice[0] === 'true' || choice[0] === 'false')) {
+                dark.set(choice[0] === 'true')
+            } else {
+                dark.set(undefined)
+            }
         }
     }
     addEventListener('storage', storageHandler)
@@ -110,4 +82,12 @@ export function listener() {
     }
 }
 
-export const initScript = `<script>(function(){document.documentElement.className = localStorage.getItem('${STORAGE_KEY}')})()</script>`
+export const initScript = `<script>
+const system = matchMedia('${MEDIA_DARK}').matches
+const stored = (localStorage.getItem('${STORAGE_KEY}') || '').split(':')
+let dark = false
+if (stored[1] === system.toString() && (stored[0] === 'true' || stored[0] === 'false')) dark = stored[0] === 'true'
+else dark = system
+if (dark) document.documentElement.classList.add('dark')
+else document.documentElement.classList.remove('dark')
+</script>`
